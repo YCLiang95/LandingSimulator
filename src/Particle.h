@@ -12,7 +12,7 @@ public:
 	virtual void draw() override;
 	virtual GameObject* clone() override;
 
-	float lifeSpan;
+	float lifeSpan = 3000;
 	glm::vec3 direction;
 	float speed;
 	float timeOfSpawn;

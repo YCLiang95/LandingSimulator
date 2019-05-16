@@ -15,7 +15,7 @@ public:
 	float angle;
 
 	//The parent of this tranform
-	Transform* parent;
+	Transform* parent = NULL;
 
 	//Some simple speed data
 	//Determind how fast it turn, current speed, the drag that slow it down, and the acceration

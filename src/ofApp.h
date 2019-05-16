@@ -2,7 +2,13 @@
 
 #include "ofMain.h"
 #include "ofxAssimpModelLoader.h"
-#include "main.h"
+#include "Util.h"
+#include "box.h"
+#include "ray.h"
+#include "Octree.h"
+#include "Force.h"
+#include "ofxGui.h"
+#include "ParticleEmitter.h"
 
 
 
@@ -76,4 +82,10 @@ class ofApp : public ofBaseApp{
 
 		ParticleSystem ps;
 		ParticleEmitter emitter;
+
+		ofLight sunLight;
+		ofLight spotLight;
+
+		glm::vec3 landingArea1;
+		glm::vec3 landingArea2;
 };

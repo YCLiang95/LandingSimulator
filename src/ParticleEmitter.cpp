@@ -32,9 +32,9 @@ void ParticleEmitter::spawn() {
 	if (emmitionSound.isLoaded())
 		emmitionSound.play();
 
-	p->transform.speed = speed;
+	p->transform.speed = transform.parent->speed;
 	p->transform.direction = direction;
-	p->transform.speedDirection = direction;
+	p->transform.speedDirection = transform.parent->speedDirection;
 
 	pSystem->addParticle(p);
 }
@@ -52,6 +52,6 @@ ParticleEmitter::ParticleEmitter(ParticleSystem* ps, GameObject* p) {
 	direction = glm::vec3(0, 0, 0);
 	lifeSpan = 3000;
 	speed = 1;
-	interval = 1000;
+	interval = 10;
 	timeLastSpawn = ofGetElapsedTimeMillis();
 }

@@ -1,5 +1,4 @@
-#ifndef _EMITTER_H_
-#define _EMITTER_H_
+#pragma once
 
 #include "ofMain.h"
 #include "Particle.h"
@@ -32,13 +31,15 @@ public:
 	//This might be move to partical system class in the future
 	vector<GameObject*> particles;
 
+	ParticleEmitter() {};
 	ParticleEmitter(ParticleSystem* ps, GameObject* p);
 	
 	virtual void update() override;
 	virtual void draw() override;
 
+	bool bApplyForce = false;
+	ImpulseForce force;
+
 	//Spawn a new partical
 	void spawn();
 };
-
-#endif

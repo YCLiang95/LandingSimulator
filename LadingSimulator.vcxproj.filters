@@ -344,9 +344,6 @@
     <ClInclude Include="src\Octree.h">
       <Filter>src\Octree</Filter>
     </ClInclude>
-    <ClInclude Include="src\main.h">
-      <Filter>src</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

@@ -27,6 +27,7 @@
 
 
 
+
 //--------------------------------------------------------------
 // setup scene, lighting, state and load geometry
 //
@@ -104,12 +105,38 @@ void ofApp::setup(){
 
 	ofSetBackgroundColor(ofColor::black);
 
-	octree.create(mars.getMesh(0), 10);
-
 	ps = ParticleSystem();
-	Particle p = Particle();
-	emitter = ParticleEmitter(&ps, &p);
+	Particle* p = new Particle();
+	emitter = ParticleEmitter(&ps, p);
 	emitter.transform.parent = &oRocket.transform;
+
+	sunLight.setDirectional();
+	sunLight.setPosition(25, -25, 25);
+	sunLight.lookAt(glm::vec3(0, 0, 0));
+	sunLight.setSpecularColor(ofColor(200));
+	sunLight.setDiffuseColor(ofColor(200));
+	sunLight.setAmbientColor(ofColor(80));
+
+	spotLight.setSpotlight();
+	spotLight.setSpotlightCutOff(50);
+	spotLight.setSpotConcentration(45);
+	spotLight.setAttenuation(1, 0, 0);
+	spotLight.setSpecularColor(ofColor(255, 120, 20));
+	spotLight.setDiffuseColor(ofColor(255, 120, 20));
+	spotLight.setAmbientColor(ofColor(100));
+
+	//int a = rand() % mars.getMesh(0).getNumVertices();
+	int a = 26218;
+	//int b = rand() % mars.getMesh(0).getNumVertices();
+	int b = 20381;
+	landingArea1 = mars.getMesh(0).getVertex(a);
+	landingArea2 = mars.getMesh(0).getVertex(b);
+	landingArea1.y -= 5;
+	landingArea2.y -= 4;
+
+	//cout << a << " " << b << endl;
+
+	octree.create(mars.getMesh(0), 10);
 }
 
 //--------------------------------------------------------------
@@ -125,13 +152,18 @@ void ofApp::update() {
 		oRocket.transform.applyForce(10000, rocket_up);
 		oRocket.update();
 		rocket.setPosition(oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z);
-		cam4.setPosition(glm::vec3(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z));
-		cam4.setTarget(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
+
+		cam4.setPosition(glm::vec3(-oRocket.transform.position.x - 0.05, -oRocket.transform.position.y, oRocket.transform.position.z + 0.05));
+		cam4.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
+
+		spotLight.setPosition(glm::vec3(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z));
+		spotLight.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
+
 		emitter.update();
 		ps.update();
 		float t = ofGetSystemTimeMillis();
 		float height = 0;
-		if (t - timeLastOctree > 500) {
+		if (t - timeLastOctree > 200) {
 			height_detection();
 			height_line.clear();
 			if (bPointSelected) {
@@ -139,22 +171,33 @@ void ofApp::update() {
 				height_line.addVertex(selectedPoint);
 				height = (ofVec3f(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z) - selectedPoint).length();
 				guiheight = std::to_string(height);
-			}
 
-			if (height <= 0.1 && oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
-				bLanded = true;
+				if (height <= 0.15 && oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
+					bLanded = true;
+					float min = (oRocket.transform.position - landingArea1).length();
+					if ((oRocket.transform.position - landingArea2).length() < min) min = (oRocket.transform.position - landingArea2).length();
+					guispeed_warning = "lading distance: " + std::to_string(min);
+				}
+				else if (height <= 0.15 && oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
+					//exploded
+					bLanded = true;
+					guispeed_warning = "Crashed";
+				}
 			}
-			else if (height <= 0.1 && oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
+			if (oRocket.transform.position.y > 1) {
 				//exploded
 				bLanded = true;
+				guispeed_warning = "Crashed";
 			}
 
-			guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y * 100);
-			if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01)
-				guispeed_warning = "Too Fast!";
-			else
-				guispeed_warning = "Good";
-			timeLastOctree = t;
+			if (!bLanded) {
+				guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y * 100);
+				if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01)
+					guispeed_warning = "Too Fast!";
+				else
+					guispeed_warning = "Good";
+				timeLastOctree = t;
+			}
 		}
 	}
 }
@@ -206,6 +249,10 @@ void ofApp::draw(){
 	}
 	else {
 		ofEnableLighting();              // shaded mode
+		sunLight.enable();
+		spotLight.enable();
+		//sunLight.draw();
+		//spotLight.draw();
 		mars.drawFaces();
 
 		if (bRocketLoaded) {
@@ -216,6 +263,8 @@ void ofApp::draw(){
 	}
 
 	ps.draw();
+	ofDrawSphere(landingArea1,.1);
+	ofDrawSphere(landingArea2,.1);
 
 	if (bDisplayPoints) {                // display points as an option    
 		glPointSize(3);

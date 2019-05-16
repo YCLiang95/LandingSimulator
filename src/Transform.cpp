@@ -1,7 +1,7 @@
 #include "Transform.h"
 
 glm::vec3 Transform::getPosition() {
-	if (parent != NULL)
+          	if (parent != NULL)
 		return parent->getPosition() + position;
 	else
 		return position;
