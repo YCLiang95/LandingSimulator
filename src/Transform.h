@@ -23,8 +23,8 @@ public:
 	float speed = 0.0f;
 	float acceration = 0.0f;
 	glm::vec3 accerationDirection;
-	float maxSpeed = 2.0f;
-	float drag = 0.5f;
+	float maxSpeed = 3.5f;
+	float drag = 0.0f;
 	float size = 32.0f;
 
 	//Current movemenet direction

@@ -10,6 +10,7 @@ void GameObject::draw() {
 //}
 
 void GameObject::update() {
+	transform.update();
 }
 
 

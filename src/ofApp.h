@@ -5,6 +5,9 @@
 #include "box.h"
 #include "ray.h"
 #include "Octree.h"
+#include "GameObject.h"
+#include "Force.h"
+#include "ofxGui.h"
 
 class ofApp : public ofBaseApp{
 
@@ -37,12 +40,21 @@ class ofApp : public ofBaseApp{
 
 		ofEasyCam cam;
 		ofEasyCam cam2;
-		vector<ofEasyCam*> cameras;
+		ofEasyCam cam3;
+		ofEasyCam cam4;
+		vector<ofCamera*> cameras;
 		ofxAssimpModelLoader mars, rocket;
+		GameObject oRocket;
 		ofLight light;
 		//Box boundingBox;
 		vector<Box> level1, level2, level3;
 		Octree octree;
+		ImpulseForce gravity;
+		ImpulseForce rocket_up;
+		ImpulseForce rocket_hor;
+
+		ofxPanel gui;
+		ofxLabel guispeed;
 	
 		bool bAltKeyDown;
 		bool bCtrlKeyDown;

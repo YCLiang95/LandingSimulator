@@ -41,21 +41,51 @@ void ofApp::setup(){
 	bRocketLoaded = false;
 	bTerrainSelected = true;
 //	ofSetWindowShape(1024, 768);
-	cam.setDistance(10);
+	cam.setPosition(25, 25, 0);
+	//cam.setDistance(50);
+	cam.setTarget(glm::vec3(0, 0, 0));
 	cam.setNearClip(.1);
 	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
 	ofSetVerticalSync(true);
 	//cam.disableMouseInput();
-	cam.enableMouseInput();
+	cam.disableMouseInput();
 	cameras.push_back(&cam);
 	cam2.setTarget(glm::vec3(0, 25, 0));
 	cam2.setDistance(10);
 	cam2.setNearClip(.1);
 	cam2.setFov(65.5);
-	cam2.disableMouseInput();
+	cam2.enableMouseInput();
 	cameras.push_back(&cam2);
 	ofEnableSmoothing();
 	ofEnableDepthTest();
+
+	cam3.setFov(65.5);
+	cam3.setNearClip(.1);
+	cam3.setPosition(glm::vec3(0, 25, 0));
+	cam3.setTarget(glm::vec3(0, 0, 0));
+	cam3.setDistance(50);
+	cam3.disableMouseInput();
+
+	cam4.setFov(65.5);
+	cam4.setNearClip(.1);
+	cam4.setPosition(glm::vec3(0.5, 25, 0));
+	cam4.setTarget(glm::vec3(0, 0, 0));
+	cam4.disableMouseInput();
+	
+
+	cameras.push_back(&cam3);
+	cameras.push_back(&cam4);
+	gravity = ImpulseForce();
+	gravity.magnitude = 0.5f;
+	gravity.direction = glm::vec3(0, 1, 0);
+
+	rocket_up = ImpulseForce();
+	rocket_hor = ImpulseForce();
+	rocket_up.magnitude = 1.5f;
+	rocket_hor.magnitude = 1.0f;
+
+	gui.setup();
+	gui.add(guispeed.setup("Speed ", std::to_string(0)));
 
 	// setup rudimentary lighting 
 	//
@@ -64,9 +94,12 @@ void ofApp::setup(){
 	mars.loadModel("geo/terrain_1.obj");
 	mars.setScaleNormalization(false);
 	rocket.loadModel("geo/rocket_1.obj");
+	rocket.setScale(0.25, 0.25, 0.25);
 	rocket.setScaleNormalization(false);
 	bRocketLoaded = true;
 	rocket.setPosition(0, -25, 0);
+	oRocket = GameObject();
+	oRocket.transform.position = glm::vec3(0, -25, 0);
 
 	ofSetBackgroundColor(ofColor::black);
 
@@ -77,7 +110,18 @@ void ofApp::setup(){
 // incrementally update scene (animation)
 //
 void ofApp::update() {
-	cam2.setTarget(glm::vec3(rocket.getPosition().x, - rocket.getPosition().y, rocket.getPosition().z));
+	cam2.setTarget(glm::vec3(-rocket.getPosition().x, - rocket.getPosition().y, rocket.getPosition().z));
+	cam2.setDistance(10);
+	cam2.setNearClip(.1);
+	oRocket.transform.applyForce(10000, gravity);
+	oRocket.transform.applyForce(10000, rocket_hor);
+	oRocket.transform.applyForce(10000, rocket_up);
+	oRocket.update();
+	rocket.setPosition(oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z);
+	cam4.setPosition(glm::vec3(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z));
+	cam4.setTarget(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
+
+	guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y);
 }
 //--------------------------------------------------------------
 void ofApp::draw(){
@@ -86,6 +130,7 @@ void ofApp::draw(){
 	ofBackground(ofColor::black);
 //	cout << ofGetFrameRate() << endl;
 
+	ofEnableDepthTest();
 	cameras[current_camera]->begin();
 	ofPushMatrix();
 	ofMultMatrix(mars.getModelMatrix());
@@ -131,7 +176,9 @@ void ofApp::draw(){
 	//octree.draw(7, 0);
 
 	ofPopMatrix();
-	cam.end();
+	cameras[current_camera]->end();
+	ofDisableDepthTest();
+	gui.draw();
 }
 
 // 
@@ -167,12 +214,8 @@ void ofApp::keyPressed(int key) {
 	switch (key) {
 	case 'C':
 	case 'c':
-		//if (cam.getMouseInputEnabled()) cam.disableMouseInput();
-		//else cam.enableMouseInput();
-		cameras[current_camera]->disableMouseInput();
 		current_camera++;
-		if (current_camera == 2) current_camera = 0;
-		cameras[current_camera]->enableMouseInput();
+		if (current_camera == 4) current_camera = 0;
 		break;
 	case 'F':
 	case 'f':
@@ -184,9 +227,6 @@ void ofApp::keyPressed(int key) {
 	case 'r':
 		cam.reset();
 		break;
-	case 's':
-		savePicture();
-		break;
 	case 't':
 		setCameraTarget();
 		break;
@@ -196,6 +236,9 @@ void ofApp::keyPressed(int key) {
 		togglePointsDisplay();
 		break;
 	case 'V':
+		break;
+	case 's':
+		savePicture();
 		break;
 	case 'w':
 		toggleWireframeMode();
@@ -210,6 +253,21 @@ void ofApp::keyPressed(int key) {
 	case OF_KEY_SHIFT:
 		break;
 	case OF_KEY_DEL:
+		break;
+	case ' ':
+		rocket_up.direction = glm::vec3(0, -1, 0);
+		break;
+	case OF_KEY_LEFT:
+		rocket_hor.direction = glm::vec3(1, 0, 0);
+		break;
+	case OF_KEY_RIGHT:
+		rocket_hor.direction = glm::vec3(-1, 0, 0);
+		break;
+	case OF_KEY_UP:
+		rocket_hor.direction = glm::vec3(0, 0, -1);
+		break;
+	case OF_KEY_DOWN:
+		rocket_hor.direction = glm::vec3(0, 0, 1);
 		break;
 	default:
 		break;
@@ -240,6 +298,15 @@ void ofApp::keyReleased(int key) {
 		bCtrlKeyDown = false;
 		break;
 	case OF_KEY_SHIFT:
+		break;
+	case ' ':
+		rocket_up.direction = glm::vec3(0, 0, 0);
+		break;
+	case OF_KEY_LEFT:
+	case OF_KEY_RIGHT:
+	case OF_KEY_UP:
+	case OF_KEY_DOWN:
+		rocket_hor.direction = glm::vec3(0, 0, 0);
 		break;
 	default:
 		break;
