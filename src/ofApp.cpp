@@ -86,6 +86,7 @@ void ofApp::setup(){
 
 	gui.setup();
 	gui.add(guispeed.setup("Speed ", std::to_string(0)));
+	gui.add(guiheight.setup("Height ", std::to_string(0)));
 
 	// setup rudimentary lighting 
 	//
@@ -103,7 +104,7 @@ void ofApp::setup(){
 
 	ofSetBackgroundColor(ofColor::black);
 
-	octree.create(mars.getMesh(0), 9);
+	octree.create(mars.getMesh(0), 10);
 }
 
 //--------------------------------------------------------------
@@ -120,9 +121,44 @@ void ofApp::update() {
 	rocket.setPosition(oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z);
 	cam4.setPosition(glm::vec3(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z));
 	cam4.setTarget(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
-
-	guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y);
+	float t = ofGetSystemTimeMillis();
+	if (t - timeLastOctree > 500) {
+		height_detection();
+		height_line.clear();
+		if (bPointSelected) {
+			height_line.addVertex(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z);
+			height_line.addVertex(selectedPoint);
+			guiheight = std::to_string((ofVec3f(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z) - selectedPoint).length());
+		}
+		guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y);
+		timeLastOctree = t;
+	}
 }
+
+void ofApp::height_detection() {
+	ofVec3f rayDir = ofVec3f(0, 1, 0);
+	Ray ray = Ray(Vector3(-oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z),
+		Vector3(-oRocket.transform.position.x, oRocket.transform.position.y + 1000, oRocket.transform.position.z));
+
+	TreeNode node = TreeNode();
+	if (octree.intersect(ray, octree.root, node)) {
+		float distance = 0;
+
+		//Search code from doPointSelection() function
+		for (int i = 0; i < node.points.size(); i++) {
+			ofVec3f point = cam.worldToCamera(mars.getMesh(0).getVertex(node.points[0]));
+			float curDist = point.length();
+
+			if (i == 0 || curDist < distance) {
+				distance = curDist;
+				selectedPoint = mars.getMesh(0).getVertex(node.points[0]);
+			}
+		}
+		bPointSelected = true;
+	}
+	else bPointSelected = false;
+}
+
 //--------------------------------------------------------------
 void ofApp::draw(){
 
@@ -174,7 +210,7 @@ void ofApp::draw(){
 	ofNoFill();
 	//octree.drawLeafNodes(octree.root);
 	//octree.draw(7, 0);
-
+	height_line.draw();
 	ofPopMatrix();
 	cameras[current_camera]->end();
 	ofDisableDepthTest();

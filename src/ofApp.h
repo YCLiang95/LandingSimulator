@@ -35,6 +35,7 @@ class ofApp : public ofBaseApp{
 		void toggleSelectTerrain();
 		void setCameraTarget();
 		int current_camera;
+		void height_detection();
 
 		bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 
@@ -53,8 +54,11 @@ class ofApp : public ofBaseApp{
 		ImpulseForce rocket_up;
 		ImpulseForce rocket_hor;
 
+		ofPolyline height_line;
+
 		ofxPanel gui;
 		ofxLabel guispeed;
+		ofxLabel guiheight;
 	
 		bool bAltKeyDown;
 		bool bCtrlKeyDown;
@@ -69,4 +73,5 @@ class ofApp : public ofBaseApp{
 		ofVec3f intersectPoint;
 
 		const float selectionRange = 4.0;
+		float timeLastOctree = 0;
 };
