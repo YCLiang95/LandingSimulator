@@ -134,6 +134,12 @@ void ofApp::setup(){
 	landingArea1.y -= 5;
 	landingArea2.y -= 4;
 
+	landingArea3 = mars.getMesh(0).getVertex(4053);
+	landingArea3.y -= 5;
+
+	ofLoadImage(Terran, "geo/surface.jpg");
+	//ofLoadImage(Terran, "geo/dot.png");
+	particle_shader.load("shaders/shader.vert", "shaders/shader.frag");
 	//cout << a << " " << b << endl;
 
 	octree.create(mars.getMesh(0), 10);
@@ -172,22 +178,24 @@ void ofApp::update() {
 				height = (ofVec3f(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z) - selectedPoint).length();
 				guiheight = std::to_string(height);
 
-				if (height <= 0.15 && oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
-					bLanded = true;
-					float min = (oRocket.transform.position - landingArea1).length();
-					if ((oRocket.transform.position - landingArea2).length() < min) min = (oRocket.transform.position - landingArea2).length();
-					guispeed_warning = "lading distance: " + std::to_string(min);
-				}
-				else if (height <= 0.15 && oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
-					//exploded
-					bLanded = true;
-					guispeed_warning = "Crashed";
+				if (height <= 0.15) {
+					if (oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
+						bLanded = true;
+						float min = (oRocket.transform.position - landingArea1).length();
+						if ((oRocket.transform.position - landingArea2).length() < min) min = (oRocket.transform.position - landingArea2).length();
+						guispeed_warning = "lading distance: " + std::to_string(min);
+					}
+					else if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
+						//exploded
+						bLanded = true;
+						guispeed_warning = "Crashed, score: 0";
+					}
 				}
 			}
 			if (oRocket.transform.position.y > 1) {
 				//exploded
 				bLanded = true;
-				guispeed_warning = "Crashed";
+				guispeed_warning = "Crashed, score: 0";
 			}
 
 			if (!bLanded) {
@@ -231,6 +239,7 @@ void ofApp::draw(){
 
 //	ofBackgroundGradient(ofColor(20), ofColor(0));   // pick your own backgroujnd
 	ofBackground(ofColor::black);
+	loadVbo();
 //	cout << ofGetFrameRate() << endl;
 
 	ofEnableDepthTest();
@@ -261,10 +270,16 @@ void ofApp::draw(){
 		}
 		if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
 	}
-
+	//particle_shader.begin();
+	//Terran.bind();
 	ps.draw();
+	//vbo.draw(GL_POINTS, 0, (int)emitter.pSystem->particles.size());
+	//Terran.unbind();
+	//particle_shader.end();
+
 	ofDrawSphere(landingArea1,.1);
 	ofDrawSphere(landingArea2,.1);
+	ofDrawSphere(landingArea3, .1);
 
 	if (bDisplayPoints) {                // display points as an option    
 		glPointSize(3);
@@ -537,4 +552,21 @@ bool ofApp::mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &
 	ofVec3f rayDir = rayPoint - cam.getPosition();
 	rayDir.normalize();
 	return (rayIntersectPlane(rayPoint, rayDir, planePoint, planeNorm, point));
+}
+
+void ofApp::loadVbo() {
+	if (emitter.pSystem->particles.size() < 1) return;
+
+	vector<ofVec3f> sizes;
+	vector<ofVec3f> points;
+	for (int i = 0; i < emitter.pSystem->particles.size(); i++) {
+		points.push_back(emitter.pSystem->particles[i]->transform.position);
+		sizes.push_back(ofVec3f(.1));
+	}
+	// upload the data to the vbo
+	//
+	int total = (int)points.size();
+	vbo.clear();
+	vbo.setVertexData(&points[0], total, GL_STATIC_DRAW);
+	vbo.setNormalData(&sizes[0], total, GL_STATIC_DRAW);
 }
