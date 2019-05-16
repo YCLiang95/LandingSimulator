@@ -24,7 +24,6 @@
 
 
 #include "ofApp.h"
-#include "Util.h"
 
 
 
@@ -87,6 +86,7 @@ void ofApp::setup(){
 	gui.setup();
 	gui.add(guispeed.setup("Speed ", std::to_string(0)));
 	gui.add(guiheight.setup("Height ", std::to_string(0)));
+	gui.add(guispeed_warning.setup("", std::to_string(0)));
 
 	// setup rudimentary lighting 
 	//
@@ -105,33 +105,57 @@ void ofApp::setup(){
 	ofSetBackgroundColor(ofColor::black);
 
 	octree.create(mars.getMesh(0), 10);
+
+	ps = ParticleSystem();
+	Particle p = Particle();
+	emitter = ParticleEmitter(&ps, &p);
+	emitter.transform.parent = &oRocket.transform;
 }
 
 //--------------------------------------------------------------
 // incrementally update scene (animation)
 //
 void ofApp::update() {
-	cam2.setTarget(glm::vec3(-rocket.getPosition().x, - rocket.getPosition().y, rocket.getPosition().z));
-	cam2.setDistance(10);
-	cam2.setNearClip(.1);
-	oRocket.transform.applyForce(10000, gravity);
-	oRocket.transform.applyForce(10000, rocket_hor);
-	oRocket.transform.applyForce(10000, rocket_up);
-	oRocket.update();
-	rocket.setPosition(oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z);
-	cam4.setPosition(glm::vec3(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z));
-	cam4.setTarget(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
-	float t = ofGetSystemTimeMillis();
-	if (t - timeLastOctree > 500) {
-		height_detection();
-		height_line.clear();
-		if (bPointSelected) {
-			height_line.addVertex(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z);
-			height_line.addVertex(selectedPoint);
-			guiheight = std::to_string((ofVec3f(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z) - selectedPoint).length());
+	if (!bLanded) {
+		cam2.setTarget(glm::vec3(-rocket.getPosition().x, -rocket.getPosition().y, rocket.getPosition().z));
+		cam2.setDistance(10);
+		cam2.setNearClip(.1);
+		oRocket.transform.applyForce(10000, gravity);
+		oRocket.transform.applyForce(10000, rocket_hor);
+		oRocket.transform.applyForce(10000, rocket_up);
+		oRocket.update();
+		rocket.setPosition(oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z);
+		cam4.setPosition(glm::vec3(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z));
+		cam4.setTarget(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
+		emitter.update();
+		ps.update();
+		float t = ofGetSystemTimeMillis();
+		float height = 0;
+		if (t - timeLastOctree > 500) {
+			height_detection();
+			height_line.clear();
+			if (bPointSelected) {
+				height_line.addVertex(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z);
+				height_line.addVertex(selectedPoint);
+				height = (ofVec3f(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z) - selectedPoint).length();
+				guiheight = std::to_string(height);
+			}
+
+			if (height <= 0.1 && oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
+				bLanded = true;
+			}
+			else if (height <= 0.1 && oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
+				//exploded
+				bLanded = true;
+			}
+
+			guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y * 100);
+			if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01)
+				guispeed_warning = "Too Fast!";
+			else
+				guispeed_warning = "Good";
+			timeLastOctree = t;
 		}
-		guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y);
-		timeLastOctree = t;
 	}
 }
 
@@ -191,6 +215,7 @@ void ofApp::draw(){
 		if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
 	}
 
+	ps.draw();
 
 	if (bDisplayPoints) {                // display points as an option    
 		glPointSize(3);
@@ -292,6 +317,7 @@ void ofApp::keyPressed(int key) {
 		break;
 	case ' ':
 		rocket_up.direction = glm::vec3(0, -1, 0);
+		emitter.active = true;
 		break;
 	case OF_KEY_LEFT:
 		rocket_hor.direction = glm::vec3(1, 0, 0);
@@ -337,6 +363,7 @@ void ofApp::keyReleased(int key) {
 		break;
 	case ' ':
 		rocket_up.direction = glm::vec3(0, 0, 0);
+		emitter.active = false;
 		break;
 	case OF_KEY_LEFT:
 	case OF_KEY_RIGHT:

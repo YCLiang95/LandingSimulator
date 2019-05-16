@@ -1,13 +1,10 @@
 #pragma once
 
 #include "ofMain.h"
-#include  "ofxAssimpModelLoader.h"
-#include "box.h"
-#include "ray.h"
-#include "Octree.h"
-#include "GameObject.h"
-#include "Force.h"
-#include "ofxGui.h"
+#include "ofxAssimpModelLoader.h"
+#include "main.h"
+
+
 
 class ofApp : public ofBaseApp{
 
@@ -59,12 +56,14 @@ class ofApp : public ofBaseApp{
 		ofxPanel gui;
 		ofxLabel guispeed;
 		ofxLabel guiheight;
+		ofxLabel guispeed_warning;
 	
 		bool bAltKeyDown;
 		bool bCtrlKeyDown;
 		bool bWireframe;
 		bool bDisplayPoints;
 		bool bPointSelected;
+		bool bLanded = false;
 		
 		bool bRocketLoaded;
 		bool bTerrainSelected;
@@ -74,4 +73,7 @@ class ofApp : public ofBaseApp{
 
 		const float selectionRange = 4.0;
 		float timeLastOctree = 0;
+
+		ParticleSystem ps;
+		ParticleEmitter emitter;
 };

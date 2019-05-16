@@ -19,6 +19,11 @@ public:
 	~GameObject() {};
 	bool isDead = false;
 
+	virtual GameObject* clone() { 
+		GameObject* result = new GameObject(*this);
+		return result;
+	};
+
 	//Some event pass in just for override
 	void virtual keyPressed(int key) {};
 	void virtual keyReleased(int key) {};
