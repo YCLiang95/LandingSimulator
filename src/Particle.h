@@ -3,6 +3,11 @@
 #include "ofMain.h"
 #include "GameObject.h"
 
+//--------------------------------------------------------------
+//Yecheng Liang
+//code reused from 2D vintage shooter
+//basicly no changes
+
 //The partical, emitted by the emitter
 class Particle : public GameObject{
 public:

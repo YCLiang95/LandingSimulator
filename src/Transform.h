@@ -2,6 +2,8 @@
 #include "ofMain.h"
 #include "Force.h"
 
+//Yecheng Liang
+//code reused from 2D vintage shooter
 
 //Similar to Unity tranformation
 //Record most position/rotation infor of a game object

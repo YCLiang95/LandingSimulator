@@ -3,6 +3,9 @@
 #include "ofMain.h"
 #include "Transform.h"
 
+//Yecheng Liang
+//code reused from 2D vintage shooter
+
 //Similar to unity, game objects are objects that can be placed in to the world
 //It's the base class, for now it's mostly empty
 class GameObject {

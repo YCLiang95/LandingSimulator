@@ -1,5 +1,10 @@
 #include "ParticleEmitter.h"
 
+//--------------------------------------------------------------
+//Yecheng Liang
+//code reused from 2D vintage shooter
+//basicly no changes
+
 
 void ParticleEmitter::update() {
 	if (active) {
@@ -28,9 +33,6 @@ void ParticleEmitter::spawn() {
 
 	particle->transform.position = transform.getPosition();
 	GameObject* p = particle->clone();
-
-	if (emmitionSound.isLoaded())
-		emmitionSound.play();
 
 	p->transform.speed = transform.parent->speed;
 	p->transform.direction = direction;

@@ -4,8 +4,9 @@
 #include"GameObject.h"
 #include "Force.h"
 
-//Not Implemented yet
-//A Partical system will controll mutilple emitter
+//--------------------------------------------------------------
+//Yecheng Liang
+//code reused from 2D vintage shooter
 
 class ParticleSystem {
 public:
@@ -13,5 +14,7 @@ public:
 	vector<GameObject*> particles;
 	void draw();
 	void addParticle(GameObject* particle);
-	void applyForce(Force force);
+	void applyForce(ImpulseForce force);
+
+	float weight = 100;
 };

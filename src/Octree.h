@@ -3,7 +3,8 @@
 #include "box.h"
 #include "ray.h"
 
-
+//Yecheng Liang
+//code reused from Octree homework vintage shooter
 class TreeNode {
 public:
 	Box box;

@@ -10,7 +10,9 @@
 #include "ofxGui.h"
 #include "ParticleEmitter.h"
 
-
+//--------------------------------------------------------------
+//Yecheng Liang
+//Jiabao Qiu
 
 class ofApp : public ofBaseApp{
 
@@ -39,13 +41,10 @@ class ofApp : public ofBaseApp{
 		void setCameraTarget();
 		int current_camera;
 		void height_detection();
-		void loadVbo();
 
 		//camera
 		void setup_camear();
 		void update_camera();
-
-		bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 
 		ofEasyCam cam;
 		ofEasyCam cam2;
@@ -100,12 +99,7 @@ class ofApp : public ofBaseApp{
 		glm::vec3 landingArea2;
 		glm::vec3 landingArea3;
 
-		ofShader particle_shader;
-
-		ofTexture Terran;
-		ofTexture shader;
-
-		ofVbo vbo;
+		ofImage background;
 
 		float height = 999;
 };

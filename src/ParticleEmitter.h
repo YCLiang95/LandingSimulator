@@ -4,6 +4,11 @@
 #include "Particle.h"
 #include "ParticleSystem.h"
 
+//--------------------------------------------------------------
+//Yecheng Liang
+//code reused from 2D vintage shooter
+//basicly no changes
+
 class ParticleEmitter: public GameObject {
 public:
 	GameObject* particle;

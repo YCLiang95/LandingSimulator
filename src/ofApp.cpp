@@ -6,8 +6,6 @@
 #include "ofApp.h"
 
 
-
-
 //--------------------------------------------------------------
 // setup scene, lighting, state and load geometry
 //
@@ -44,6 +42,8 @@ void ofApp::setup(){
 	//
 	initLightingAndMaterials();
 
+	background.load("background.jpg");
+
 	mars.loadModel("geo/terrain_1.obj");
 	mars.setScaleNormalization(false);
 	rocket.loadModel("geo/rocket_1.obj");
@@ -61,6 +61,7 @@ void ofApp::setup(){
 	Particle* p = new Particle();
 	emitter = ParticleEmitter(&ps, p);
 	emitter.transform.parent = &oRocket.transform;
+	emitter.emmitionSound.load("Rocket-SoundBible.com-941967813.wav");
 
 	sunLight.setDirectional();
 	sunLight.setPosition(25, -25, 25);
@@ -88,11 +89,6 @@ void ofApp::setup(){
 
 	landingArea3 = mars.getMesh(0).getVertex(61234);
 	landingArea3.y -= 5;
-
-	ofLoadImage(Terran, "geo/surface.jpg");
-	//ofLoadImage(Terran, "geo/dot.png");
-	particle_shader.load("shaders/shader.vert", "shaders/shader.frag");
-	//cout << a << " " << b << endl;
 
 	octree.create(mars.getMesh(0), 10);
 }
@@ -130,7 +126,8 @@ void ofApp::update() {
 			timeLastOctree = t;
 		}
 
-		if (bPointSelected && height <= 0.2) {
+		//for performance reason, don't do collision detection until very low
+		if (bPointSelected && height <= 0.5) {
 			TreeNode node = TreeNode();
 			if (octree.collide(rocketBox, octree.root, node)) {
 				if (oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
@@ -163,6 +160,8 @@ void ofApp::update() {
 	}
 }
 
+//detecting current height from the terran
+//shoot a ray straight down and find the collsion
 void ofApp::height_detection() {
 	ofVec3f rayDir = ofVec3f(0, 1, 0);
 	Ray ray = Ray(Vector3(-oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z),
@@ -190,10 +189,8 @@ void ofApp::height_detection() {
 //--------------------------------------------------------------
 void ofApp::draw(){
 
-//	ofBackgroundGradient(ofColor(20), ofColor(0));   // pick your own backgroujnd
 	ofBackground(ofColor::black);
-	loadVbo();
-//	cout << ofGetFrameRate() << endl;
+	background.draw(0, 0);
 
 	ofEnableDepthTest();
 	cameras[current_camera]->begin();
@@ -213,8 +210,7 @@ void ofApp::draw(){
 		ofEnableLighting();              // shaded mode
 		sunLight.enable();
 		spotLight.enable();
-		//sunLight.draw();
-		//spotLight.draw();
+
 		mars.drawFaces();
 
 		if (bRocketLoaded) {
@@ -223,15 +219,11 @@ void ofApp::draw(){
 		}
 		if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
 	}
-	//particle_shader.begin();
-	//Terran.bind();
+
+	//draw particle system
 	ofSetColor(ofColor(255, 100, 0));
 	ps.draw();
 	ofSetColor(ofColor(0, 0, 255));
-	//vbo.draw(GL_POINTS, 0, (int)emitter.pSystem->particles.size());
-	//Terran.unbind();
-	//particle_shader.end();
-
 	ofDrawSphere(landingArea1,.1);
 	ofDrawSphere(landingArea2,.1);
 	ofDrawSphere(landingArea3, .1);
@@ -336,6 +328,8 @@ void ofApp::keyPressed(int key) {
 		break;
 	case ' ':
 		rocket_up.direction = glm::vec3(0, -1, 0);
+		if (emitter.emmitionSound.isLoaded() && !emitter.active)
+			emitter.emmitionSound.play();
 		emitter.active = true;
 		break;
 	case OF_KEY_LEFT:
@@ -383,6 +377,8 @@ void ofApp::keyReleased(int key) {
 	case ' ':
 		rocket_up.direction = glm::vec3(0, 0, 0);
 		emitter.active = false;
+		if (emitter.emmitionSound.isLoaded())
+			emitter.emmitionSound.stop();
 		break;
 	case OF_KEY_LEFT:
 	case OF_KEY_RIGHT:
@@ -395,7 +391,6 @@ void ofApp::keyReleased(int key) {
 
 	}
 }
-
 
 
 //--------------------------------------------------------------
@@ -493,37 +488,7 @@ void ofApp::savePicture() {
 	cout << "picture saved" << endl;
 }
 
-//--------------------------------------------------------------
-//
-// support drag-and-drop of model (.obj) file loading.  when
-// model is dropped in viewport, place origin under cursor
-//
 void ofApp::dragEvent(ofDragInfo dragInfo) {
-}
-
-bool ofApp::mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point) {
-	glm::vec3 mouse(mouseX, mouseY, 0);
-	ofVec3f rayPoint = cam.screenToWorld(mouse);
-	ofVec3f rayDir = rayPoint - cam.getPosition();
-	rayDir.normalize();
-	return (rayIntersectPlane(rayPoint, rayDir, planePoint, planeNorm, point));
-}
-
-void ofApp::loadVbo() {
-	if (emitter.pSystem->particles.size() < 1) return;
-
-	vector<ofVec3f> sizes;
-	vector<ofVec3f> points;
-	for (int i = 0; i < emitter.pSystem->particles.size(); i++) {
-		points.push_back(emitter.pSystem->particles[i]->transform.position);
-		sizes.push_back(ofVec3f(.1));
-	}
-	// upload the data to the vbo
-	//
-	int total = (int)points.size();
-	vbo.clear();
-	vbo.setVertexData(&points[0], total, GL_STATIC_DRAW);
-	vbo.setNormalData(&sizes[0], total, GL_STATIC_DRAW);
 }
 
 

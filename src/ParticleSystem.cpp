@@ -1,5 +1,10 @@
 #include "ParticleSystem.h"
 
+//--------------------------------------------------------------
+//Yecheng Liang
+//code reused from 2D vintage shooter
+//basicly no changes
+
 void ParticleSystem::update(){
 	//Update all particals
 	for (vector<GameObject*>::iterator it = particles.begin(); it != particles.end();) {
@@ -26,5 +31,7 @@ void ParticleSystem::addParticle(GameObject* particle) {
 	particles.push_back(particle);
 }
 
-void ParticleSystem::applyForce(Force force) {
+void ParticleSystem::applyForce(ImpulseForce force) {
+	for (vector<GameObject*>::iterator it = particles.begin(); it != particles.end();)
+		(**it).transform.applyForce(weight, force);
 }

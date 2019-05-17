@@ -1,6 +1,7 @@
 //  Kevin M. Smith - Basic Octree Class - CS134/235 4/18/18
 //
-
+//Yecheng Liang
+//code reused from Octree homework vintage shooter
 
 #include "Octree.h"
  

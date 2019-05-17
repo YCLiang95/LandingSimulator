@@ -1,5 +1,8 @@
 #include "Transform.h"
 
+//Yecheng Liang
+//code reused from 2D vintage shooter
+
 glm::vec3 Transform::getPosition() {
           	if (parent != NULL)
 		return parent->getPosition() + position;
@@ -8,6 +11,9 @@ glm::vec3 Transform::getPosition() {
 };
 
 
+//update the transform
+//calculate the speed and direction based on acceration
+//Rotational direction are ignored in this project, which was used in 2D vintage shooter
 void Transform::update() {
 
 	if (acceration > 0) {
@@ -32,6 +38,8 @@ void Transform::update() {
 	accerationDirection.z = 0;
 }
 
+//Apply a force
+//Calculate the acceration based on force and weight
 void Transform::applyForce(float weight, ImpulseForce force) {
 	accerationDirection = accerationDirection * acceration + force.direction * (force.magnitude / weight);
 	acceration = accerationDirection.length();
