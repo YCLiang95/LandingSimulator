@@ -1,27 +1,7 @@
 
 //--------------------------------------------------------------
-//
-//  Kevin M. Smith
-//
-//  Mars HiRise Project - startup scene
-// 
-//  This is an openFrameworks 3D scene that includes an EasyCam
-//  and example 3D geometry which I have reconstructed from Mars
-//  HiRis photographs taken the Mars Reconnaisance Orbiter
-//
-//  You will use this source file (and include file) as a starting point
-//  to implement assignment 5  (Parts I and II)
-//
-//  Please do not modify any of the keymappings.  I would like 
-//  the input interface to be the same for each student's 
-//  work.  Please also add your name/date below.
-
-//  Please document/comment all of your work !
-//  Have Fun !!
-//
-//  Student Name:   < Your Name goes Here >
-//  Date: <date of last version>
-
+//Yecheng Liang
+//Jiabao Qiu
 
 #include "ofApp.h"
 
@@ -85,9 +65,12 @@ void ofApp::setup(){
 	rocket_hor.magnitude = 1.0f;
 
 	gui.setup();
-	gui.add(guispeed.setup("Speed ", std::to_string(0)));
+	gui.add(guispeed.setup("Vertical speed ", std::to_string(0)));
+	gui.add(Gui_x.setup("X speed", std::to_string(0)));
+	gui.add(Gui_y.setup("Y speed", std::to_string(0)));
 	gui.add(guiheight.setup("Height ", std::to_string(0)));
 	gui.add(guispeed_warning.setup("", std::to_string(0)));
+	gui.add(Guid1.setup("Press C to swith Camera", std::to_string(0)));
 
 	// setup rudimentary lighting 
 	//
@@ -134,7 +117,7 @@ void ofApp::setup(){
 	landingArea1.y -= 5;
 	landingArea2.y -= 4;
 
-	landingArea3 = mars.getMesh(0).getVertex(4053);
+	landingArea3 = mars.getMesh(0).getVertex(61234);
 	landingArea3.y -= 5;
 
 	ofLoadImage(Terran, "geo/surface.jpg");
@@ -168,7 +151,6 @@ void ofApp::update() {
 		emitter.update();
 		ps.update();
 		float t = ofGetSystemTimeMillis();
-		float height = 0;
 		if (t - timeLastOctree > 200) {
 			height_detection();
 			height_line.clear();
@@ -177,35 +159,37 @@ void ofApp::update() {
 				height_line.addVertex(selectedPoint);
 				height = (ofVec3f(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z) - selectedPoint).length();
 				guiheight = std::to_string(height);
-
-				if (height <= 0.15) {
-					if (oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
-						bLanded = true;
-						float min = (oRocket.transform.position - landingArea1).length();
-						if ((oRocket.transform.position - landingArea2).length() < min) min = (oRocket.transform.position - landingArea2).length();
-						guispeed_warning = "lading distance: " + std::to_string(min);
-					}
-					else if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
-						//exploded
-						bLanded = true;
-						guispeed_warning = "Crashed, score: 0";
-					}
+			}
+			timeLastOctree = t;
+		}
+		if (bPointSelected) {
+			if (height <= 0.15) {
+				if (oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
+					bLanded = true;
+					float min = glm::length(oRocket.transform.position - landingArea1);
+					if (glm::length(oRocket.transform.position - landingArea2) < min) min = glm::length(oRocket.transform.position - landingArea2);
+					guispeed_warning = "lading distance: " + std::to_string(min);
+				}
+				else if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
+					//exploded
+					bLanded = true;
+					guispeed_warning = "Crashed, score: 0";
 				}
 			}
-			if (oRocket.transform.position.y > 1) {
-				//exploded
-				bLanded = true;
-				guispeed_warning = "Crashed, score: 0";
-			}
-
-			if (!bLanded) {
-				guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y * 100);
-				if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01)
-					guispeed_warning = "Too Fast!";
-				else
-					guispeed_warning = "Good";
-				timeLastOctree = t;
-			}
+		}
+		if (oRocket.transform.position.y > 1) {
+			//exploded
+			bLanded = true;
+			guispeed_warning = "Crashed, score: 0";
+		}
+		if (!bLanded) {
+			guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y * 100);
+			Gui_x = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.x * 100);
+			Gui_y = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.z * 100);
+			if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01)
+				guispeed_warning = "Too Fast!";
+			else
+				guispeed_warning = "Good";
 		}
 	}
 }
@@ -272,7 +256,9 @@ void ofApp::draw(){
 	}
 	//particle_shader.begin();
 	//Terran.bind();
+	ofSetColor(ofColor(255, 100, 0));
 	ps.draw();
+	ofSetColor(ofColor(0, 0, 255));
 	//vbo.draw(GL_POINTS, 0, (int)emitter.pSystem->particles.size());
 	//Terran.unbind();
 	//particle_shader.end();

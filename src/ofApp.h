@@ -64,6 +64,10 @@ class ofApp : public ofBaseApp{
 		ofxLabel guispeed;
 		ofxLabel guiheight;
 		ofxLabel guispeed_warning;
+		ofxLabel Guid1;
+		ofxLabel Gui_x;
+		ofxLabel Gui_y;
+
 	
 		bool bAltKeyDown;
 		bool bCtrlKeyDown;
@@ -97,4 +101,6 @@ class ofApp : public ofBaseApp{
 		ofTexture shader;
 
 		ofVbo vbo;
+
+		float height = 999;
 };
