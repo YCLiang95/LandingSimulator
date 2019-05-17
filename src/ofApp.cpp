@@ -1,7 +1,32 @@
 
 //--------------------------------------------------------------
-//Yecheng Liang
-//Jiabao Qiu
+//
+//  Kevin M. Smith
+//
+//  Mars HiRise Project - startup scene
+//
+//  This is an openFrameworks 3D scene that includes an EasyCam
+//  and example 3D geometry which I have reconstructed from Mars
+//  HiRis photographs taken the Mars Reconnaisance Orbiter
+//
+//  You will use this source file (and include file) as a starting point
+//  to implement assignment 5  (Parts I and II)
+//
+//  Please do not modify any of the keymappings.  I would like
+//  the input interface to be the same for each student's
+//  work.  Please also add your name/date below.
+
+//  Please document/comment all of your work !
+//  Have Fun !!
+//
+//  Student Name:   Jiabao Qiu (team member: Yecheng Liang)
+//  Date: May 16, 2019
+//
+//  We decided to splitt our works into modeling & game functions at the beginning
+//  So I did the modeling & designing job in the project
+//  I also did the model loading & part of lighting
+//  but somehow the texture is not showing completely
+
 
 #include "ofApp.h"
 
@@ -11,18 +36,50 @@
 //--------------------------------------------------------------
 // setup scene, lighting, state and load geometry
 //
-void ofApp::setup(){
+void ofApp::setup() {
 
-	setup_camear();
-
+	current_camera = 0;
 	bWireframe = false;
 	bDisplayPoints = false;
 	bAltKeyDown = false;
 	bCtrlKeyDown = false;
 	bRocketLoaded = false;
 	bTerrainSelected = true;
-//	ofSetWindowShape(1024, 768);
+	//    ofSetWindowShape(1024, 768);
+	cam.setPosition(25, 25, 0);
+	//cam.setDistance(50);
+	cam.setTarget(glm::vec3(0, 0, 0));
+	cam.setNearClip(.1);
+	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
+	ofSetVerticalSync(true);
+	//cam.disableMouseInput();
+	cam.disableMouseInput();
+	cameras.push_back(&cam);
+	cam2.setTarget(glm::vec3(0, 25, 0));
+	cam2.setDistance(10);
+	cam2.setNearClip(.1);
+	cam2.setFov(65.5);
+	cam2.enableMouseInput();
+	cameras.push_back(&cam2);
+	ofEnableSmoothing();
+	ofEnableDepthTest();
 
+	cam3.setFov(65.5);
+	cam3.setNearClip(.1);
+	cam3.setPosition(glm::vec3(0, 25, 0));
+	cam3.setTarget(glm::vec3(0, 0, 0));
+	cam3.setDistance(50);
+	cam3.disableMouseInput();
+
+	cam4.setFov(65.5);
+	cam4.setNearClip(.1);
+	cam4.setPosition(glm::vec3(0.5, 25, 0));
+	cam4.setTarget(glm::vec3(0, 0, 0));
+	cam4.disableMouseInput();
+
+
+	cameras.push_back(&cam3);
+	cameras.push_back(&cam4);
 	gravity = ImpulseForce();
 	gravity.magnitude = 0.5f;
 	gravity.direction = glm::vec3(0, 1, 0);
@@ -33,14 +90,11 @@ void ofApp::setup(){
 	rocket_hor.magnitude = 1.0f;
 
 	gui.setup();
-	gui.add(guispeed.setup("Vertical speed ", std::to_string(0)));
-	gui.add(Gui_x.setup("X speed", std::to_string(0)));
-	gui.add(Gui_y.setup("Y speed", std::to_string(0)));
+	gui.add(guispeed.setup("Speed ", std::to_string(0)));
 	gui.add(guiheight.setup("Height ", std::to_string(0)));
 	gui.add(guispeed_warning.setup("", std::to_string(0)));
-	gui.add(Guid1.setup("Press C to swith Camera", std::to_string(0)));
 
-	// setup rudimentary lighting 
+	// setup rudimentary lighting
 	//
 	initLightingAndMaterials();
 
@@ -49,7 +103,6 @@ void ofApp::setup(){
 	rocket.loadModel("geo/rocket_1.obj");
 	rocket.setScale(0.25, 0.25, 0.25);
 	rocket.setScaleNormalization(false);
-
 	bRocketLoaded = true;
 	rocket.setPosition(0, -25, 0);
 	oRocket = GameObject();
@@ -61,6 +114,17 @@ void ofApp::setup(){
 	Particle* p = new Particle();
 	emitter = ParticleEmitter(&ps, p);
 	emitter.transform.parent = &oRocket.transform;
+
+	keyLight.setup();
+	keyLight.enable();
+	keyLight.setAreaLight(1, 1);
+	keyLight.setAmbientColor(ofFloatColor(.5, .5, .5));
+	keyLight.setDiffuseColor(ofFloatColor(1, 1, 1));
+	keyLight.setSpecularColor(ofFloatColor(1, 1, 1));
+
+	keyLight.rotate(45, ofVec3f(0, 1, 0));
+	keyLight.rotate(45, ofVec3f(1, 0, 0));
+	keyLight.setPosition(25, 20, 0);
 
 	sunLight.setDirectional();
 	sunLight.setPosition(25, -25, 25);
@@ -86,18 +150,25 @@ void ofApp::setup(){
 	landingArea1.y -= 5;
 	landingArea2.y -= 4;
 
-<<<<<<< HEAD
-	landingArea3 = mars.getMesh(0).getVertex(61234);
+	landingArea3 = mars.getMesh(0).getVertex(4053);
 	landingArea3.y -= 5;
 
-	ofLoadImage(Terran, "geo/surface.jpg");
-	//ofLoadImage(Terran, "geo/dot.png");
-	particle_shader.load("shaders/shader.vert", "shaders/shader.frag");
-=======
->>>>>>> parent of 3d863cc... fixing
-	//cout << a << " " << b << endl;
+	// I tried to make it works, but the surface image is still missing
+	ofLoadImage(texture, "geo/surface.jpg");
+	points[0].x = 0;
+	points[0].y = 0;
+	points[1].x = 1023;
+	points[1].y = 0;
+	points[2].x = 1023;
+	points[2].y = 685;
+	points[3].x = 0;
+	points[3].y = 685;
+	//    surface.loadImage("geo/surface.jpg");
 
 	octree.create(mars.getMesh(0), 10);
+
+	ofDisableArbTex();
+	ofEnableDepthTest();
 }
 
 //--------------------------------------------------------------
@@ -105,15 +176,17 @@ void ofApp::setup(){
 //
 void ofApp::update() {
 	if (!bLanded) {
-
+		cam2.setTarget(glm::vec3(-rocket.getPosition().x, -rocket.getPosition().y, rocket.getPosition().z));
+		cam2.setDistance(10);
+		cam2.setNearClip(.1);
 		oRocket.transform.applyForce(10000, gravity);
 		oRocket.transform.applyForce(10000, rocket_hor);
 		oRocket.transform.applyForce(10000, rocket_up);
 		oRocket.update();
 		rocket.setPosition(oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z);
-		rocketBox = octree.meshBounds(rocket.getMesh(0));
 
-		update_camera();
+		cam4.setPosition(glm::vec3(-oRocket.transform.position.x - 0.05, -oRocket.transform.position.y, oRocket.transform.position.z + 0.05));
+		cam4.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
 
 		spotLight.setPosition(glm::vec3(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z));
 		spotLight.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
@@ -121,6 +194,7 @@ void ofApp::update() {
 		emitter.update();
 		ps.update();
 		float t = ofGetSystemTimeMillis();
+		float height = 0;
 		if (t - timeLastOctree > 200) {
 			height_detection();
 			height_line.clear();
@@ -129,59 +203,35 @@ void ofApp::update() {
 				height_line.addVertex(selectedPoint);
 				height = (ofVec3f(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z) - selectedPoint).length();
 				guiheight = std::to_string(height);
-<<<<<<< HEAD
-=======
 
-				if (height <= 0.15 && oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
-					bLanded = true;
-					float min = (oRocket.transform.position - landingArea1).length();
-					if ((oRocket.transform.position - landingArea2).length() < min) min = (oRocket.transform.position - landingArea2).length();
-					guispeed_warning = "lading distance: " + std::to_string(min);
-				}
-				else if (height <= 0.15 && oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
-					//exploded
-					bLanded = true;
-					guispeed_warning = "Crashed";
+				if (height <= 0.15) {
+					if (oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
+						bLanded = true;
+						float min = (oRocket.transform.position - landingArea1).length();
+						if ((oRocket.transform.position - landingArea2).length() < min) min = (oRocket.transform.position - landingArea2).length();
+						guispeed_warning = "lading distance: " + std::to_string(min);
+					}
+					else if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
+						//exploded
+						bLanded = true;
+						guispeed_warning = "Crashed, score: 0";
+					}
 				}
 			}
 			if (oRocket.transform.position.y > 1) {
 				//exploded
 				bLanded = true;
-				guispeed_warning = "Crashed";
->>>>>>> parent of 3d863cc... fixing
+				guispeed_warning = "Crashed, score: 0";
 			}
-			timeLastOctree = t;
-		}
 
-		if (bPointSelected && height <= 0.2) {
-			TreeNode node = TreeNode();
-			if (octree.collide(rocketBox, octree.root, node)) {
-				if (oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
-					bLanded = true;
-					float min = glm::length(oRocket.transform.position - landingArea1);
-					if (glm::length(oRocket.transform.position - landingArea2) < min) min = glm::length(oRocket.transform.position - landingArea2);
-					guispeed_warning = "lading distance: " + std::to_string(min);
-				}
-				else if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
-					//exploded
-					bLanded = true;
-					guispeed_warning = "Crashed, score: 0";
-				}
+			if (!bLanded) {
+				guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y * 100);
+				if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01)
+					guispeed_warning = "Too Fast!";
+				else
+					guispeed_warning = "Good";
+				timeLastOctree = t;
 			}
-		}
-		if (oRocket.transform.position.y > 1) {
-			//exploded
-			bLanded = true;
-			guispeed_warning = "Crashed, score: 0";
-		}
-		if (!bLanded) {
-			guispeed = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.y * 100);
-			Gui_x = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.x * 100);
-			Gui_y = std::to_string(oRocket.transform.speed * oRocket.transform.speedDirection.z * 100);
-			if (oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01)
-				guispeed_warning = "Too Fast!";
-			else
-				guispeed_warning = "Good";
 		}
 	}
 }
@@ -211,11 +261,12 @@ void ofApp::height_detection() {
 }
 
 //--------------------------------------------------------------
-void ofApp::draw(){
+void ofApp::draw() {
 
-//	ofBackgroundGradient(ofColor(20), ofColor(0));   // pick your own backgroujnd
+	//    ofBackgroundGradient(ofColor(20), ofColor(0));   // pick your own backgroujnd
 	ofBackground(ofColor::black);
-//	cout << ofGetFrameRate() << endl;
+	loadVbo();
+	//    cout << ofGetFrameRate() << endl;
 
 	ofEnableDepthTest();
 	cameras[current_camera]->begin();
@@ -237,7 +288,12 @@ void ofApp::draw(){
 		spotLight.enable();
 		//sunLight.draw();
 		//spotLight.draw();
+//        surface.getTextureReference().bind();
+		texture.bind();
 		mars.drawFaces();
+		texture.draw(points[0], points[1], points[2], points[3]);
+		texture.unbind();
+		//        surface.getTextureReference().unbind();
 
 		if (bRocketLoaded) {
 			rocket.drawFaces();
@@ -245,23 +301,18 @@ void ofApp::draw(){
 		}
 		if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
 	}
-<<<<<<< HEAD
 	//particle_shader.begin();
 	//Terran.bind();
-	ofSetColor(ofColor(255, 100, 0));
 	ps.draw();
-	ofSetColor(ofColor(0, 0, 255));
 	//vbo.draw(GL_POINTS, 0, (int)emitter.pSystem->particles.size());
 	//Terran.unbind();
 	//particle_shader.end();
-=======
->>>>>>> parent of 3d863cc... fixing
 
-	ps.draw();
-	ofDrawSphere(landingArea1,.1);
-	ofDrawSphere(landingArea2,.1);
+	ofDrawSphere(landingArea1, .1);
+	ofDrawSphere(landingArea2, .1);
+	ofDrawSphere(landingArea3, .1);
 
-	if (bDisplayPoints) {                // display points as an option    
+	if (bDisplayPoints) {                // display points as an option
 		glPointSize(3);
 		ofSetColor(ofColor::green);
 		mars.drawVertices();
@@ -286,7 +337,7 @@ void ofApp::draw(){
 	gui.draw();
 }
 
-// 
+//
 
 // Draw an XYZ axis in RGB at world (0,0,0) for reference.
 //
@@ -300,7 +351,7 @@ void ofApp::drawAxis(ofVec3f location) {
 	// X Axis
 	ofSetColor(ofColor(255, 0, 0));
 	ofDrawLine(ofPoint(0, 0, 0), ofPoint(1, 0, 0));
-	
+
 
 	// Y Axis
 	ofSetColor(ofColor(0, 255, 0));
@@ -395,7 +446,7 @@ void ofApp::togglePointsDisplay() {
 void ofApp::keyReleased(int key) {
 
 	switch (key) {
-	
+
 	case OF_KEY_ALT:
 		cam.disableMouseInput();
 		bAltKeyDown = false;
@@ -424,7 +475,7 @@ void ofApp::keyReleased(int key) {
 
 
 //--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
+void ofApp::mouseMoved(int x, int y) {
 }
 
 
@@ -446,28 +497,28 @@ void ofApp::mouseReleased(int x, int y, int button) {
 }
 
 // Set the camera to use the selected point as it's new target
-//  
+//
 void ofApp::setCameraTarget() {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y){
+void ofApp::mouseEntered(int x, int y) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
+void ofApp::mouseExited(int x, int y) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
+void ofApp::windowResized(int w, int h) {
 
 }
 
 //--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
+void ofApp::gotMessage(ofMessage msg) {
 
 }
 
@@ -484,7 +535,7 @@ void ofApp::initLightingAndMaterials() {
 	{ 1.0f, 1.0f, 1.0f, 1.0f };
 
 	static float position[] =
-	{5.0, 5.0, 5.0, 0.0 };
+	{ 5.0, 5.0, 5.0, 0.0 };
 
 	static float lmodel_ambient[] =
 	{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -507,9 +558,9 @@ void ofApp::initLightingAndMaterials() {
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-//	glEnable(GL_LIGHT1);
+	//    glEnable(GL_LIGHT1);
 	glShadeModel(GL_SMOOTH);
-} 
+}
 
 void ofApp::savePicture() {
 	ofImage picture;
@@ -532,7 +583,6 @@ bool ofApp::mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &
 	ofVec3f rayDir = rayPoint - cam.getPosition();
 	rayDir.normalize();
 	return (rayIntersectPlane(rayPoint, rayDir, planePoint, planeNorm, point));
-<<<<<<< HEAD
 }
 
 void ofApp::loadVbo() {
@@ -550,60 +600,4 @@ void ofApp::loadVbo() {
 	vbo.clear();
 	vbo.setVertexData(&points[0], total, GL_STATIC_DRAW);
 	vbo.setNormalData(&sizes[0], total, GL_STATIC_DRAW);
-}
-
-
-//set up camearas for the scene
-void ofApp::setup_camear() {
-
-	//cam1 is a fix position angle side view camera
-	cam.setPosition(25, 25, 0);
-	//cam.setDistance(50);
-	cam.setTarget(glm::vec3(0, 0, 0));
-	cam.setNearClip(.1);
-	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
-	ofSetVerticalSync(true);
-	//cam.disableMouseInput();
-	cam.disableMouseInput();
-	cameras.push_back(&cam);
-
-	//cam2 is 3rd person camera on rocket with mouse input
-	cam2.setTarget(glm::vec3(0, 25, 0));
-	cam2.setDistance(10);
-	cam2.setNearClip(.1);
-	cam2.setFov(65.5);
-	cam2.enableMouseInput();
-	cameras.push_back(&cam2);
-	ofEnableSmoothing();
-	ofEnableDepthTest();
-
-	//cam3 is a fixed top down camera
-	cam3.setFov(65.5);
-	cam3.setNearClip(.1);
-	cam3.setPosition(glm::vec3(0, 25, 0));
-	cam3.setTarget(glm::vec3(0, 0, 0));
-	cam3.setDistance(50);
-	cam3.disableMouseInput();
-	cameras.push_back(&cam3);
-
-	//cam4 is fixed on ship camera
-	cam4.setFov(65.5);
-	cam4.setNearClip(.1);
-	cam4.setPosition(glm::vec3(0.5, 25, 0));
-	cam4.setTarget(glm::vec3(0, 0, 0));
-	cam4.disableMouseInput();
-	cameras.push_back(&cam4);
-
-	current_camera = 0;
-}
-
-void ofApp::update_camera() {
-	cam2.setTarget(glm::vec3(-rocket.getPosition().x, -rocket.getPosition().y, rocket.getPosition().z));
-	cam2.setDistance(10);
-	cam2.setNearClip(.1);
-
-	cam4.setPosition(glm::vec3(-oRocket.transform.position.x - 0.05, -oRocket.transform.position.y, oRocket.transform.position.z + 0.05));
-	cam4.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
-=======
->>>>>>> parent of 3d863cc... fixing
 }
