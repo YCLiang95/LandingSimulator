@@ -46,6 +46,12 @@ class Box {
 	Vector3 center() {
 		return ((max() - min()) / 2 + min());
 	}
+
+	bool collide(Box box) {
+		if (inside(box.parameters[0]) || inside(box.parameters[1]) || box.inside(parameters[0]) || box.inside(parameters[1]))
+			return true;
+		else return false;
+	}
 };
 
 #endif // _BOX_H_

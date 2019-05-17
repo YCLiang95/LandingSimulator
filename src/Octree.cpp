@@ -77,7 +77,7 @@ Box Octree::meshBounds(const ofMesh & mesh) {
 		if (v.z > max.z) max.z = v.z;
 		else if (v.z < min.z) min.z = v.z;
 	}
-	cout << "vertices: " << n << endl;
+	//cout << "vertices: " << n << endl;
 //	cout << "min: " << min << "max: " << max << endl;
 	return Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
 }
@@ -154,6 +154,7 @@ void Octree::subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int 
 	}
 }
 
+//collision between octree and a ray
 bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn) {
 	if (nodeRtn.points.size() == 1) return true;
 	if (node.box.intersect(ray, -1000, 1000)) {
@@ -169,6 +170,27 @@ bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn
 			return false;
 		}
 	} else
+		return false;
+}
+
+//collision detection between octree and a bounding box
+bool Octree::collide(Box box, const TreeNode & node, TreeNode & nodeRtn) {
+	if (nodeRtn.points.size() == 1) return true;
+	if (box.collide(node.box)) {
+		if (node.children.size() == 0) {
+			if (nodeRtn.points.size() == 0 || node.points.size() < nodeRtn.points.size()) {
+				nodeRtn = node;
+				return true;
+			}
+			return false;
+		}
+		else {
+			for (int i = 0; i < node.children.size(); i++)
+				if (collide(box, node.children[i], nodeRtn)) return true;
+			return false;
+		}
+	}
+	else
 		return false;
 }
 

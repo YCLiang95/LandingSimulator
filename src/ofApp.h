@@ -41,6 +41,10 @@ class ofApp : public ofBaseApp{
 		void height_detection();
 		void loadVbo();
 
+		//camera
+		void setup_camear();
+		void update_camera();
+
 		bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 
 		ofEasyCam cam;
@@ -50,9 +54,10 @@ class ofApp : public ofBaseApp{
 		vector<ofCamera*> cameras;
 		ofxAssimpModelLoader mars, rocket;
 		GameObject oRocket;
+		Box rocketBox;
 		ofLight light;
 		//Box boundingBox;
-		vector<Box> level1, level2, level3;
+
 		Octree octree;
 		ImpulseForce gravity;
 		ImpulseForce rocket_up;

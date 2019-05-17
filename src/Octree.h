@@ -21,6 +21,8 @@ public:
 	void draw(int numLevels, int level) {
 		draw(root, numLevels, level);
 	}
+
+	bool collide(Box box, const TreeNode & node, TreeNode & nodeRtn);
 	void drawLeafNodes(TreeNode & node);
 	static void drawBox(const Box &box);
 	static Box meshBounds(const ofMesh &);

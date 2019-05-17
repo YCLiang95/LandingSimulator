@@ -13,7 +13,8 @@
 //
 void ofApp::setup(){
 
-	current_camera = 0;
+	setup_camear();
+
 	bWireframe = false;
 	bDisplayPoints = false;
 	bAltKeyDown = false;
@@ -21,40 +22,7 @@ void ofApp::setup(){
 	bRocketLoaded = false;
 	bTerrainSelected = true;
 //	ofSetWindowShape(1024, 768);
-	cam.setPosition(25, 25, 0);
-	//cam.setDistance(50);
-	cam.setTarget(glm::vec3(0, 0, 0));
-	cam.setNearClip(.1);
-	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
-	ofSetVerticalSync(true);
-	//cam.disableMouseInput();
-	cam.disableMouseInput();
-	cameras.push_back(&cam);
-	cam2.setTarget(glm::vec3(0, 25, 0));
-	cam2.setDistance(10);
-	cam2.setNearClip(.1);
-	cam2.setFov(65.5);
-	cam2.enableMouseInput();
-	cameras.push_back(&cam2);
-	ofEnableSmoothing();
-	ofEnableDepthTest();
 
-	cam3.setFov(65.5);
-	cam3.setNearClip(.1);
-	cam3.setPosition(glm::vec3(0, 25, 0));
-	cam3.setTarget(glm::vec3(0, 0, 0));
-	cam3.setDistance(50);
-	cam3.disableMouseInput();
-
-	cam4.setFov(65.5);
-	cam4.setNearClip(.1);
-	cam4.setPosition(glm::vec3(0.5, 25, 0));
-	cam4.setTarget(glm::vec3(0, 0, 0));
-	cam4.disableMouseInput();
-	
-
-	cameras.push_back(&cam3);
-	cameras.push_back(&cam4);
 	gravity = ImpulseForce();
 	gravity.magnitude = 0.5f;
 	gravity.direction = glm::vec3(0, 1, 0);
@@ -81,6 +49,7 @@ void ofApp::setup(){
 	rocket.loadModel("geo/rocket_1.obj");
 	rocket.setScale(0.25, 0.25, 0.25);
 	rocket.setScaleNormalization(false);
+
 	bRocketLoaded = true;
 	rocket.setPosition(0, -25, 0);
 	oRocket = GameObject();
@@ -133,17 +102,15 @@ void ofApp::setup(){
 //
 void ofApp::update() {
 	if (!bLanded) {
-		cam2.setTarget(glm::vec3(-rocket.getPosition().x, -rocket.getPosition().y, rocket.getPosition().z));
-		cam2.setDistance(10);
-		cam2.setNearClip(.1);
+
 		oRocket.transform.applyForce(10000, gravity);
 		oRocket.transform.applyForce(10000, rocket_hor);
 		oRocket.transform.applyForce(10000, rocket_up);
 		oRocket.update();
 		rocket.setPosition(oRocket.transform.position.x, oRocket.transform.position.y, oRocket.transform.position.z);
+		rocketBox = octree.meshBounds(rocket.getMesh(0));
 
-		cam4.setPosition(glm::vec3(-oRocket.transform.position.x - 0.05, -oRocket.transform.position.y, oRocket.transform.position.z + 0.05));
-		cam4.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
+		update_camera();
 
 		spotLight.setPosition(glm::vec3(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z));
 		spotLight.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
@@ -162,8 +129,10 @@ void ofApp::update() {
 			}
 			timeLastOctree = t;
 		}
-		if (bPointSelected) {
-			if (height <= 0.15) {
+
+		if (bPointSelected && height <= 0.2) {
+			TreeNode node = TreeNode();
+			if (octree.collide(rocketBox, octree.root, node)) {
 				if (oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
 					bLanded = true;
 					float min = glm::length(oRocket.transform.position - landingArea1);
@@ -555,4 +524,58 @@ void ofApp::loadVbo() {
 	vbo.clear();
 	vbo.setVertexData(&points[0], total, GL_STATIC_DRAW);
 	vbo.setNormalData(&sizes[0], total, GL_STATIC_DRAW);
+}
+
+
+//set up camearas for the scene
+void ofApp::setup_camear() {
+
+	//cam1 is a fix position angle side view camera
+	cam.setPosition(25, 25, 0);
+	//cam.setDistance(50);
+	cam.setTarget(glm::vec3(0, 0, 0));
+	cam.setNearClip(.1);
+	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
+	ofSetVerticalSync(true);
+	//cam.disableMouseInput();
+	cam.disableMouseInput();
+	cameras.push_back(&cam);
+
+	//cam2 is 3rd person camera on rocket with mouse input
+	cam2.setTarget(glm::vec3(0, 25, 0));
+	cam2.setDistance(10);
+	cam2.setNearClip(.1);
+	cam2.setFov(65.5);
+	cam2.enableMouseInput();
+	cameras.push_back(&cam2);
+	ofEnableSmoothing();
+	ofEnableDepthTest();
+
+	//cam3 is a fixed top down camera
+	cam3.setFov(65.5);
+	cam3.setNearClip(.1);
+	cam3.setPosition(glm::vec3(0, 25, 0));
+	cam3.setTarget(glm::vec3(0, 0, 0));
+	cam3.setDistance(50);
+	cam3.disableMouseInput();
+	cameras.push_back(&cam3);
+
+	//cam4 is fixed on ship camera
+	cam4.setFov(65.5);
+	cam4.setNearClip(.1);
+	cam4.setPosition(glm::vec3(0.5, 25, 0));
+	cam4.setTarget(glm::vec3(0, 0, 0));
+	cam4.disableMouseInput();
+	cameras.push_back(&cam4);
+
+	current_camera = 0;
+}
+
+void ofApp::update_camera() {
+	cam2.setTarget(glm::vec3(-rocket.getPosition().x, -rocket.getPosition().y, rocket.getPosition().z));
+	cam2.setDistance(10);
+	cam2.setNearClip(.1);
+
+	cam4.setPosition(glm::vec3(-oRocket.transform.position.x - 0.05, -oRocket.transform.position.y, oRocket.transform.position.z + 0.05));
+	cam4.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
 }
