@@ -39,7 +39,6 @@ class ofApp : public ofBaseApp{
 		void setCameraTarget();
 		int current_camera;
 		void height_detection();
-		void loadVbo();
 
 		//camera
 		void setup_camear();
@@ -98,6 +97,7 @@ class ofApp : public ofBaseApp{
 
 		glm::vec3 landingArea1;
 		glm::vec3 landingArea2;
+<<<<<<< HEAD
 		glm::vec3 landingArea3;
 
 		ofShader particle_shader;
@@ -108,4 +108,6 @@ class ofApp : public ofBaseApp{
 		ofVbo vbo;
 
 		float height = 999;
+=======
+>>>>>>> parent of 3d863cc... fixing
 };

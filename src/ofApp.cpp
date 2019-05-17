@@ -86,12 +86,15 @@ void ofApp::setup(){
 	landingArea1.y -= 5;
 	landingArea2.y -= 4;
 
+<<<<<<< HEAD
 	landingArea3 = mars.getMesh(0).getVertex(61234);
 	landingArea3.y -= 5;
 
 	ofLoadImage(Terran, "geo/surface.jpg");
 	//ofLoadImage(Terran, "geo/dot.png");
 	particle_shader.load("shaders/shader.vert", "shaders/shader.frag");
+=======
+>>>>>>> parent of 3d863cc... fixing
 	//cout << a << " " << b << endl;
 
 	octree.create(mars.getMesh(0), 10);
@@ -126,6 +129,26 @@ void ofApp::update() {
 				height_line.addVertex(selectedPoint);
 				height = (ofVec3f(-oRocket.transform.position.x, -oRocket.transform.position.y, oRocket.transform.position.z) - selectedPoint).length();
 				guiheight = std::to_string(height);
+<<<<<<< HEAD
+=======
+
+				if (height <= 0.15 && oRocket.transform.speed * oRocket.transform.speedDirection.y <= 0.01) {
+					bLanded = true;
+					float min = (oRocket.transform.position - landingArea1).length();
+					if ((oRocket.transform.position - landingArea2).length() < min) min = (oRocket.transform.position - landingArea2).length();
+					guispeed_warning = "lading distance: " + std::to_string(min);
+				}
+				else if (height <= 0.15 && oRocket.transform.speed * oRocket.transform.speedDirection.y > 0.01) {
+					//exploded
+					bLanded = true;
+					guispeed_warning = "Crashed";
+				}
+			}
+			if (oRocket.transform.position.y > 1) {
+				//exploded
+				bLanded = true;
+				guispeed_warning = "Crashed";
+>>>>>>> parent of 3d863cc... fixing
 			}
 			timeLastOctree = t;
 		}
@@ -192,7 +215,6 @@ void ofApp::draw(){
 
 //	ofBackgroundGradient(ofColor(20), ofColor(0));   // pick your own backgroujnd
 	ofBackground(ofColor::black);
-	loadVbo();
 //	cout << ofGetFrameRate() << endl;
 
 	ofEnableDepthTest();
@@ -223,6 +245,7 @@ void ofApp::draw(){
 		}
 		if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
 	}
+<<<<<<< HEAD
 	//particle_shader.begin();
 	//Terran.bind();
 	ofSetColor(ofColor(255, 100, 0));
@@ -231,10 +254,12 @@ void ofApp::draw(){
 	//vbo.draw(GL_POINTS, 0, (int)emitter.pSystem->particles.size());
 	//Terran.unbind();
 	//particle_shader.end();
+=======
+>>>>>>> parent of 3d863cc... fixing
 
+	ps.draw();
 	ofDrawSphere(landingArea1,.1);
 	ofDrawSphere(landingArea2,.1);
-	ofDrawSphere(landingArea3, .1);
 
 	if (bDisplayPoints) {                // display points as an option    
 		glPointSize(3);
@@ -507,6 +532,7 @@ bool ofApp::mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &
 	ofVec3f rayDir = rayPoint - cam.getPosition();
 	rayDir.normalize();
 	return (rayIntersectPlane(rayPoint, rayDir, planePoint, planeNorm, point));
+<<<<<<< HEAD
 }
 
 void ofApp::loadVbo() {
@@ -578,4 +604,6 @@ void ofApp::update_camera() {
 
 	cam4.setPosition(glm::vec3(-oRocket.transform.position.x - 0.05, -oRocket.transform.position.y, oRocket.transform.position.z + 0.05));
 	cam4.lookAt(oRocket.transform.position + glm::vec3(0.5, -1000, 0));
+=======
+>>>>>>> parent of 3d863cc... fixing
 }
